@@ -283,7 +283,7 @@ Tcl_GetsObjCmd(
     Tcl_Channel chan;		/* The channel to read from. */
     size_t lineLen;		/* Length of line just read. */
     int mode;			/* Mode in which channel is opened. */
-    Tcl_Obj *linePtr, *chanObjPtr;
+    Tcl_Obj *linePtr, *chanObjPtr, *resultDictPtr, *returnOptsPtr;
     int code = TCL_OK;
 
     if ((objc != 2) && (objc != 3)) {
@@ -306,7 +306,6 @@ Tcl_GetsObjCmd(
     lineLen = Tcl_GetsObj(chan, linePtr);
     if (lineLen == TCL_IO_FAILURE) {
 	if (!Tcl_Eof(chan) && !Tcl_InputBlocked(chan)) {
-	    Tcl_DecrRefCount(linePtr);
 
 	    /*
 	     * TIP #219.
@@ -317,9 +316,16 @@ Tcl_GetsObjCmd(
 
 	    if (!TclChanCaughtErrorBypass(interp, chan)) {
 		Tcl_SetObjResult(interp, Tcl_ObjPrintf(
-			"error reading \"%s\": %s",
-			TclGetString(chanObjPtr), Tcl_PosixError(interp)));
+		    "error reading \"%s\": %s",
+		    TclGetString(chanObjPtr), Tcl_PosixError(interp)));
 	    }
+	    resultDictPtr = Tcl_NewDictObj();
+	    Tcl_DictObjPut(NULL, resultDictPtr, Tcl_NewStringObj("read", -1),
+		linePtr);
+	    returnOptsPtr = Tcl_NewDictObj();
+	    Tcl_DictObjPut(NULL, returnOptsPtr, Tcl_NewStringObj("-result", -1),
+		resultDictPtr);
+	    Tcl_SetReturnOptions(interp, returnOptsPtr);
 	    code = TCL_ERROR;
 	    goto done;
 	}
@@ -371,7 +377,7 @@ Tcl_ReadObjCmd(
     Tcl_WideInt toRead;			/* How many bytes to read? */
     size_t charactersRead;		/* How many characters were read? */
     int mode;			/* Mode in which channel is opened. */
-    Tcl_Obj *resultPtr, *chanObjPtr;
+    Tcl_Obj *resultPtr, *chanObjPtr, *resultDictPtr, *returnOptsPtr;
 
     if ((objc != 2) && (objc != 3)) {
 	Interp *iPtr;
@@ -445,7 +451,14 @@ Tcl_ReadObjCmd(
 		    "error reading \"%s\": %s",
 		    TclGetString(chanObjPtr), Tcl_PosixError(interp)));
 	}
+	resultDictPtr = Tcl_NewDictObj();
+	Tcl_DictObjPut(NULL, resultDictPtr, Tcl_NewStringObj("read", -1),
+	    resultPtr);
+	returnOptsPtr = Tcl_NewDictObj();
+	Tcl_DictObjPut(NULL, returnOptsPtr, Tcl_NewStringObj("-result", -1),
+	    resultDictPtr);
 	TclChannelRelease(chan);
+	Tcl_SetReturnOptions(interp, returnOptsPtr);
 	return TCL_ERROR;
     }
 
