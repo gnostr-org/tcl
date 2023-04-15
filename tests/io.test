@@ -9294,12 +9294,13 @@ test io-75.7 {
     fconfigure $f -encoding utf-8 -buffering none -eofchar {} -translation lf \
 	-profile strict
 } -body {
-    read $f
+    set status [catch {read $f} cres copts]
+    list $status $cres [dict get $copts -result read]
 } -cleanup {
     close $f
     removeFile io-75.7
-} -match glob -returnCodes 1 -result {error reading "file*":\
-    invalid or incomplete multibyte or wide character}
+} -match glob -result {1 {error reading "file*":\
+    invalid or incomplete multibyte or wide character} A}
 
 test io-75.8 {invalid utf-8 encoding eof handling (-profile strict)} -setup {
     set fn [makeFile {} io-75.8]
@@ -9351,8 +9352,8 @@ test io-75.10 {
     seek $f 0
     fconfigure $f -encoding utf-8 -buffering none
 } -body {
-    catch {read $f} errmsg
-    lappend res $errmsg
+    catch {read $f} errmsg copts
+    lappend res $errmsg [dict get $copts -result read]
     seek $f 0
     chan configure $f -profile tcl8
     set d [read $f]
@@ -9364,7 +9365,7 @@ test io-75.10 {
     removeFile io-75.10
     unset result
 } -match glob -result {{error reading "file*":\
-    invalid or incomplete multibyte or wide character} 41c0}
+    invalid or incomplete multibyte or wide character} A 41c0}
 
 # The current result returns the orphan byte as byte.
 # This may be expected due to special utf-8 handling.
@@ -9406,8 +9407,8 @@ test io-75.12 {
     seek $f 0
     fconfigure $f -encoding utf-8 -buffering none -eofchar {} -translation lf
 } -body {
-    catch {read $f} errmsg
-    lappend res $errmsg
+    catch {read $f} errmsg copts
+    lappend res $errmsg [dict get $copts -result read]
     chan configure $f -profile tcl8
     seek $f 0
     set d [read $f]
@@ -9419,7 +9420,7 @@ test io-75.12 {
     removeFile io-75.12
     unset res
 } -match glob -result {{error reading "file*":\
-    invalid or incomplete multibyte or wide character} 4181}
+    invalid or incomplete multibyte or wide character} A 4181}
 test io-75.13 {
     In nonblocking mode when there is an encoding error the data that has been
     successfully read so far is returned first and then the error is returned
