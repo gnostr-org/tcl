@@ -283,7 +283,7 @@ Tcl_GetsObjCmd(
     Tcl_Channel chan;		/* The channel to read from. */
     size_t lineLen;		/* Length of line just read. */
     int mode;			/* Mode in which channel is opened. */
-    Tcl_Obj *linePtr, *chanObjPtr, *resultDictPtr, *returnOptsPtr;
+    Tcl_Obj *linePtr, *chanObjPtr, *returnOptsPtr;
     int code = TCL_OK;
 
     if ((objc != 2) && (objc != 3)) {
@@ -319,13 +319,6 @@ Tcl_GetsObjCmd(
 		    "error reading \"%s\": %s",
 		    TclGetString(chanObjPtr), Tcl_PosixError(interp)));
 	    }
-	    resultDictPtr = Tcl_NewDictObj();
-	    Tcl_DictObjPut(NULL, resultDictPtr, Tcl_NewStringObj("read", -1),
-		linePtr);
-	    returnOptsPtr = Tcl_NewDictObj();
-	    Tcl_DictObjPut(NULL, returnOptsPtr, Tcl_NewStringObj("-result", -1),
-		resultDictPtr);
-	    Tcl_SetReturnOptions(interp, returnOptsPtr);
 	    code = TCL_ERROR;
 	    goto done;
 	}
