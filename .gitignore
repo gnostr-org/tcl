@@ -51,7 +51,10 @@ libtommath/demo/*
 libtommath/*.out
 libtommath/*.tex
 macosx/configure
+**.DS_Store
 unix/autoMkindex.tcl
+**configure~
+**tclConfig.h.in~
 unix/dltest.marker
 unix/tcl.pc
 unix/tclIndex
